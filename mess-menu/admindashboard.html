@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin – Mess Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+<style>
+  * { 
+    box-sizing: border-box; 
+    font-family: Roboto;
+   }
+  body {
+     background: #f5f5f5;
+   padding: 20px;
+  user-select: none;
+ }
+
+  h1 { 
+    text-align: center; 
+    margin-bottom: 15px;
+   }
+
+  select, button.reset {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+
+  button.reset {
+    background: #b03a2e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+    gap: 20px;
+  }
+
+  .day {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .meal {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #fafafa;
+    border: 1px solid #ddd;
+  }
+
+  .dish {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .dish:last-child { border-bottom: none; }
+
+  .ratings, .average {
+    margin-top: 5px;
+    font-weight: bold;
+  }
+
+  .average { color: #1e8449; }
+
+  .comment {
+    margin-top: 6px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .comment button {
+    background: #c0392b;
+    color: white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+    .home {
+  z-index: 100;
+  position: absolute;
+  top: 40px;
+  left: 30px;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  font-size: 25px;
+  font-weight: bold;}
+  .dashboard {
+  z-index: 100;
+  position: absolute;
+  top: 40px;
+  left: 130px;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  font-size: 25px;
+  font-weight: bold;}
+</style>
+</head>
+
+<body>
+   <div onclick="window.location.href='../main-page/frontadmin.html'" class="home">&lt; Home</div>
+  <div onclick="window.location.href='admin-mess-menu.html'" class="dashboard"> &lt;Back</div>
+
+<h1>Weekly Mess Dashboard</h1>
+
+<select id="hostelSelect">
+  <option value="">-- Select Hostel --</option>
+ <option value="HostelA">Amber</option>
+      <option value="HostelB">Diamond</option>
+      <option value="HostelC">Jasper </option>
+      <option value="HostelD">Sapphire</option>
+      <option value="HostelE">Topaz</option>
+      <option value="HostelF">Aquamarine</option>
+      <option value="HostelG">Emerald</option>
+      <option value="HostelH">Opal</option>
+      <option value="HostelI">Rosaline and Ruby</option>
+      <option value="HostelJ">International Hostel</option>
+</select>
+
+<button class="reset" id="resetBtn">Reset ALL Ratings & Comments</button>
+
+<div id="dashboard" class="grid"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc,
+  collection, getDocs, deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const MEALS = ["breakfast","lunch","snacks","dinner"];
+
+const hostelSelect = document.getElementById("hostelSelect");
+const dashboard = document.getElementById("dashboard");
+const resetBtn = document.getElementById("resetBtn");
+
+hostelSelect.addEventListener("change", loadDashboard);
+resetBtn.addEventListener("click", resetAll);
+
+
+async function resetAll() {
+  if (!confirm("⚠️ This will DELETE ALL ratings and comments. Continue?")) return;
+
+  const collections = ["dishRatings", "dishComments", "userDishRatings"];
+
+  for (const col of collections) {
+    const snap = await getDocs(collection(db, col));
+    for (const d of snap.docs) {
+      await deleteDoc(d.ref);
+    }
+  }
+
+  alert("✅ All ratings & comments reset successfully");
+  dashboard.innerHTML = "";
+}
+
+
+async function loadDashboard() {
+  const hostel = hostelSelect.value;
+  if (!hostel) return dashboard.innerHTML = "";
+
+  dashboard.innerHTML = "";
+
+  const menuSnap = await getDoc(doc(db, "weeklyMessMenus", hostel));
+  if (!menuSnap.exists()) return dashboard.innerHTML = "<p>No menu uploaded.</p>";
+  const menu = menuSnap.data();
+
+  const ratingsSnap = await getDocs(collection(db, "dishRatings"));
+  const ratingsMap = {};
+  ratingsSnap.forEach(r => {
+    ratingsMap[r.id] = r.data().ratings ?? {1:0,2:0,3:0,4:0,5:0};
+  });
+
+  const commentsSnap = await getDocs(collection(db, "dishComments"));
+  const commentsMap = {};
+  commentsSnap.forEach(c => {
+    const d = c.data();
+    if (!commentsMap[d.dishId]) commentsMap[d.dishId] = [];
+    commentsMap[d.dishId].push(d);
+  });
+
+  for (const day of DAYS) {
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "day";
+    dayDiv.innerHTML = `<h2>${day}</h2>`;
+
+    for (const meal of MEALS) {
+      const mealDiv = document.createElement("div");
+      mealDiv.className = "meal";
+      mealDiv.innerHTML = `<h3>${meal.toUpperCase()}</h3>`;
+
+      (menu?.[day]?.[meal] || []).forEach(dish => {
+        const dishDiv = document.createElement("div");
+        dishDiv.className = "dish";
+        dishDiv.innerHTML = `<b>${dish.name}</b>`;
+
+        const r = ratingsMap[dish.dishId] ?? {1:0,2:0,3:0,4:0,5:0};
+        const total = Object.values(r).reduce((a,b)=>a+b,0);
+        const avg = total === 0 ? "No ratings" :
+          ((1*r[1]+2*r[2]+3*r[3]+4*r[4]+5*r[5]) / total).toFixed(2);
+
+        dishDiv.innerHTML += `
+          <div class="ratings">${Object.entries(r).map(([k,v])=>`${k}★:${v}`).join(" | ")}</div>
+          <div class="average">⭐ Average: ${avg}${avg!=="No ratings"?" / 5":""}</div>
+        `;
+
+        (commentsMap[dish.dishId] || []).forEach(async c => {
+          const userSnap = await getDoc(doc(db, "users", c.userId));
+          const u = userSnap.exists() ? userSnap.data() : {};
+
+          const cDiv = document.createElement("div");
+          cDiv.className = "comment";
+
+          const text = `
+Name: ${u.fullName || "N/A"}
+Admission No: ${u.admission || "N/A"}
+Room: ${u.room || "N/A"}
+Hostel: ${u.hostel || "N/A"}
+
+Dish: ${dish.name}
+Comment: ${c.comment}
+`;
+
+
+          cDiv.innerHTML = `<span><b>${u.fullName || "Anonymous"}:</b> ${c.comment}</span>`;
+
+
+          const reportBtn = document.createElement("button");
+          reportBtn.innerText = "Report";
+          reportBtn.onclick = () => {
+            window.location.href =
+              `mailto:${u.email || "abhishekkt237@gmail.com"}?subject=Reported Mess Comment&body=${encodeURIComponent(text)}`;
+          };
+
+          cDiv.appendChild(reportBtn);
+          dishDiv.appendChild(cDiv);
+        });
+
+        mealDiv.appendChild(dishDiv);
+      });
+
+      dayDiv.appendChild(mealDiv);
+    }
+
+    dashboard.appendChild(dayDiv);
+  }
+}
+</script>
+
+</body>
+</html>

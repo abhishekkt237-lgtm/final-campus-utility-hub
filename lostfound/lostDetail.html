@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lost Item Details</title>
+
+<style>
+  body { font-family: Roboto, sans-serif; background:#f5f5f5; padding:30px;
+  user-select: none; }
+  .box {
+    background:white;
+    padding:20px;
+    max-width:1000px;
+    margin:auto;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    display: flex;
+  }
+  img {
+    width:500px;
+    border-radius:10px;
+     margin: 20px 20px 10px 0;
+  }
+  h2 { margin-top:15px;
+  font-size: 30px; }
+  .item-info p, .reporter p { margin:8px 0; }
+  .reporter {
+    margin-top:20px;
+    background:#eef3e0;
+    padding:15px;
+    border-radius:8px;
+     box-shadow:0 5px 15px rgba(0,0,0,0.2);
+       max-width: 440px;
+  }
+  .chat-btn {
+    padding:10px 15px;
+    background:#543002;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    margin-top:10px;
+    margin-right: 15px;
+  }
+  .no-image {
+    width:500px;
+    background:#ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    color:#555;
+  }
+  .item-info {
+    background-color: #ad9c87;
+    padding: 20px;
+    border-radius: 6px;
+     box-shadow:0 5px 15px rgba(0,0,0,0.2);
+     overflow: hidden;
+     max-width: 440px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<div class="itemimg">
+  <img id="itemImage" style="display:none">
+  <div id="noImage" class="no-image" style="display:none">
+    No Image Provided
+  </div></div>
+  <div class="info">
+
+  <h2 id="itemName"></h2>
+
+  <div class="item-info">
+    <p><b>Last Seen:</b> <span id="lastSeen"></span></p>
+    <p><b>Description:</b></p>
+    <p id="itemDescription"></p>
+  </div>
+
+  <div class="reporter">
+    <h3>Owner Info</h3>
+    <p><b>Name:</b> <span id="ownerName"></span></p>
+    <p><b>Phone:</b> <span id="ownerPhone"></span></p>
+    <p><b>Branch:</b> <span id="ownerBranch"></span></p>
+    <p><b>Hostel:</b> <span id="ownerHostel"></span></p>
+    <p><b>Room No.:</b> <span id="ownerRoom"></span></p>
+
+    <button class="chat-btn" id="chatBtn">Contact Owner</button> <button onclick="window.location.href='lostitems.html'"  class="chat-btn">Go back</button>
+  </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const params = new URLSearchParams(window.location.search);
+const lostId = params.get("lostId");
+
+if (!lostId) {
+  alert("Lost item not specified");
+  throw new Error("No lostId");
+}
+
+const lostRef = doc(db, "lostItems", lostId);
+const lostSnap = await getDoc(lostRef);
+
+if (!lostSnap.exists()) {
+  alert("Lost item not found");
+  throw new Error("Lost item not found");
+}
+
+const item = lostSnap.data();
+
+if (item.imageURL && item.imageURL.trim() !== "") {
+  const img = document.getElementById("itemImage");
+  img.src = item.imageURL;
+  img.style.display = "block";
+} else {
+  document.getElementById("noImage").style.display = "flex";
+}
+
+document.getElementById("itemName").innerText = item.itemName || "";
+document.getElementById("lastSeen").innerText = item.lastSeen || "";
+document.getElementById("itemDescription").innerText = item.description || "";
+
+if (!item.reporterId) {
+  alert("Reporter ID missing");
+  throw new Error("No reporterId");
+}
+
+const ownerRef = doc(db, "users", item.reporterId);
+const ownerSnap = await getDoc(ownerRef);
+
+if (!ownerSnap.exists()) {
+  alert("Owner info not found");
+  throw new Error("User document missing");
+}
+
+const owner = ownerSnap.data();
+
+document.getElementById("ownerName").innerText = owner.fullName || "";
+document.getElementById("ownerPhone").innerText = owner.phone || "";
+document.getElementById("ownerBranch").innerText = owner.branch || "";
+document.getElementById("ownerHostel").innerText = owner.hostel || "";
+document.getElementById("ownerRoom").innerText = owner.room || "";
+
+document.getElementById("chatBtn").onclick = () => {
+  if (owner.phone) {
+    window.open(`https://wa.me/${owner.phone}`, "_blank");
+  } else {
+    alert("Phone number not available");
+  }
+};
+</script>
+
+</body>
+</html>

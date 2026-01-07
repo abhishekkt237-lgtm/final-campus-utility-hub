@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <title>Announcements and notices</title>
+    <style>
+      * {
+  margin: 0;
+  padding: 0; 
+
+      }
+      body {
+         font-family:roboto , arial;
+        display: flex;
+        background: linear-gradient(rgba(0, 0, 0, 0.5),rgba(0, 0, 0, 0.75));
+        user-select: none;
+      }
+
+      .info {
+        background-color: rgba(253, 242, 215, 0.745);
+        min-height:639px;
+        min-width:920px;
+        max-width: 920px;
+        margin: 90px 70px 0px 70px;
+         box-shadow: 4px -4px 10px rgba(0, 0, 0, 0.2);
+      }
+      .information{
+        background-image: url(logo.png);
+        background-size: 400px;
+        background-repeat: no-repeat;
+        background-position: 290px 170px;
+        min-height:639px;
+        min-width:920px;
+        max-width: 920px;
+        opacity: 0.2;
+        text-align: center;
+        font-size: 40px;
+        padding-top: 20px;
+      }
+      .announcements {
+        background-color: rgb(255, 255, 255);
+        min-width: 450px;
+        max-width: 450px;
+        margin: 0 0 20px 20px;
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+      }
+      .headann {
+        font-size:40px;
+        font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        letter-spacing:2.5px;
+        text-align: center;
+        padding: 6px 0;
+        background-color: rgb(166, 171, 176);
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.289);
+      }
+       .headno {
+        font-size:40px;
+        font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        letter-spacing:2.5px;
+        text-align: center;
+        padding: 6px 0;
+        background-color: rgb(166, 171, 176);
+        margin: 10px 0;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.289);
+      }
+      .announcementname {
+        margin-top: 10px;
+        height: 270px;
+        overflow-y: auto;
+      }
+.noticename {
+  margin-top: 10px;
+        height: 290px;
+        overflow-y: auto;
+}
+.realinfo {
+  width:100%;
+  height:500px;
+  border:1px solid #908a8a;
+  outline: none;
+  opacity: 0.9;
+}
+.title {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 20px;
+  text-decoration: underline;
+}
+.btn {
+  text-align: center;
+}
+button {
+  padding: 7px 7px;
+  font-size: 18px;
+  border: 2px solid rgb(132, 135, 139);
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+button:hover {
+  background-color: rgb(132, 135, 139);
+  color:white;
+}
+.home {
+  z-index: 10;
+  position: relative;
+  left: -95px;
+  top: 20px;
+  height: 50px;
+  width: 120px;
+  font-size: 20px;
+  background-color: #4d4d4d;
+  padding: 0 5px;
+  border: none;
+  font-weight: bold;
+}
+    </style>
+  </head>
+  <body>
+    <div class="announcements">
+      <div class="headann">
+        ANNOUNCEMENTS
+      </div>
+      <div class="announcementname" id="announcementList">
+      </div>
+
+      <div class="headno">
+       NOTICES
+      </div>
+      <div class="noticename" id="noticeList">
+      </div>
+    </div>
+
+    <div class="info">
+     <div class="docview" id="docViewer" style="display:none;padding:20px;">
+       <h3 class="title" id="docTitle"></h3>
+
+       <iframe class="realinfo" id="docFrame">
+       </iframe>
+
+                        <br><br>
+       <div class="btn">
+       <a id="downloadBtn" href="" target="_blank">
+         <button class="button">
+           ⬇ Download Document
+         </button>
+        </a>
+       </div>
+     </div>
+
+     <div class="information">
+      &#x2190; Select any document to view
+     </div>
+    </div>
+    <button class="home" onclick="window.location.href= '../front.html' "><p>&#8962; Home</p></button>
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+   const firebaseConfig = {
+    apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+    authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+    projectId: "campus-utility-hub-iitism"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+ 
+function openDocument(title, url) {
+  document.getElementById("docTitle").innerText = title;
+
+  let viewerURL;
+
+  if (url.toLowerCase().endsWith(".pdf")) {
+    
+    viewerURL =
+      "https://drive.google.com/viewerng/viewer?embedded=true&url=" +
+      encodeURIComponent(url);
+  } else {
+
+    viewerURL =
+      "https://view.officeapps.live.com/op/embed.aspx?src=" +
+      encodeURIComponent(url);
+  }
+
+  document.getElementById("docFrame").src = viewerURL;
+  document.getElementById("downloadBtn").href = url;
+
+  document.getElementById("docViewer").style.display = "block";
+  document.querySelector(".information").style.display = "none";
+}
+
+async function loadAnnouncements() {
+  const list = document.getElementById("announcementList");
+  list.innerHTML = ""; 
+
+
+  const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    const div = document.createElement("div");
+    div.innerText = "• " + data.title;
+    div.style.cursor = "pointer";
+    div.style.padding = "6.5px";
+    div.onclick = () => openDocument(data.title, data.fileURL);
+    list.appendChild(div);
+  });
+}
+
+async function loadNotices() {
+  const list = document.getElementById("noticeList");
+  list.innerHTML = ""; 
+  const q = query(collection(db, "notices"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    const div = document.createElement("div");
+    div.innerText = "• " + data.title;
+    div.style.cursor = "pointer";
+    div.style.padding = "6.5px";
+    div.onclick = () => openDocument(data.title, data.fileURL);
+    list.appendChild(div);
+  });
+}
+
+  loadAnnouncements();
+  loadNotices();
+</script>
+
+
+  </body>
+</html>

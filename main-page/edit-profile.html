@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<title>Edit Profile</title>
+<style>
+* {
+  font-family: roboto, arial ;
+}
+ body {
+      font-family: Roboto, Arial;
+      background-color: rgba(227, 230, 227, 0.3);
+      padding: 30px;
+      user-select: none;
+    }
+    .card {
+      max-width: 600px;
+      margin: 11.5px  auto;
+      background: rgb(138, 153, 134);
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+     .head {
+      text-align: center;
+      font-weight: 500;
+      font-size: 25px;
+      background-color:rgb(46, 69, 39) ;
+      padding: 10px 0;
+      border-radius: 6px 6px 0 0 ;
+     box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+     color:white ;
+     }
+     button {
+      width: 150px;
+      margin: 25px 3px 25px 3px;
+      background-color: rgb(46, 69, 39);
+      border: none;
+      border-radius: 4px;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 10px 15px;
+      transition: all 0.15s;
+      box-shadow: 0 0 10px 5px rgba(0,0,0,0.2);
+      color: white;
+    
+     }
+     button:hover {
+      background-color: rgb(11, 48, 1) ;
+      color: aliceblue;
+     }
+     .btn {
+      text-align: center;
+     }
+     input {
+      margin: 20px 20px 0 40px;
+      font-size: 16px;
+      width: 80%;
+      outline: none;
+      
+     }
+
+
+</style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="head">
+      Edit Profile
+    </div>
+    <div style="text-align:center;">
+  <img id="preview"
+       src="images.png"
+       style="
+         width:120px;
+         height:120px;
+         border-radius:80%;
+         object-fit:cover;
+         border:4px solid rgb(32,66,23);
+         margin-top:20px;
+       ">
+</div>
+
+<div class="info">
+<input id="fullName" placeholder="Full Name"><br><br>
+<input id="branch" placeholder="Branch"><br><br>
+<input id="phone" placeholder="Phone"><br><br>
+
+<input type="file" id="photo"><br><br>
+</div>
+<div class="btn">
+<button id="save">Save Changes</button>
+<button onclick="window.location.href='dashboard.html'" id="cancel">Cancel</button>
+</div>
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism",
+  storageBucket: "campus-utility-hub-iitism.firebasestorage.app",
+  messagingSenderId: "281851939722",
+  appId: "1:281851939722:web:62f0da477d4c2a917f5673"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser;
+let currentPhotoURL = "";
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "../login.html";
+    return;
+  }
+
+  currentUser = user;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (snap.exists()) {
+    const d = snap.data();
+    fullName.value = d.fullName;
+    branch.value = d.branch;
+    phone.value = d.phone;
+   currentPhotoURL = d.photoURL || "";
+if (currentPhotoURL) {
+  document.getElementById("preview").src = currentPhotoURL;
+}
+
+  }
+});
+
+document.getElementById("save").onclick = async () => {
+  let photoURL = currentPhotoURL;
+
+  if (photo.files.length > 0) {
+    const formData = new FormData();
+    formData.append("file", photo.files[0]);
+    formData.append("upload_preset", "profile_pics");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dfclsa1oc/image/upload",
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    const data = await res.json();
+    photoURL = data.secure_url;
+  }
+
+  await updateDoc(doc(db, "users", currentUser.uid), {
+    fullName: fullName.value,
+    branch: branch.value,
+    phone: phone.value,
+    photoURL: photoURL,
+    updatedAt: new Date()
+  });
+
+  alert("Profile updated");
+  window.location.href = "dashboard.html";
+};
+
+</script>
+</body>
+</html>

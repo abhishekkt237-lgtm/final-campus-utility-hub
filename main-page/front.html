@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+<title>Campus Utility Hub</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+}
+
+body {
+  font-family:roboto , arial;
+  background: #f4f1e8;
+  color: #222;
+  user-select: none;
+}
+
+header {
+  background: #002855;    
+  color: #fff;
+   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.header-inner {
+  padding: 10px 8px 10px 6px;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 40px;
+  WIDTH:220PX;
+  PADDING:0 10PX 0 5PX;
+}
+
+.logopic{
+  width:100px;
+  margin-left:auto;
+}
+
+.logopic1 {
+  width:120px;
+}
+
+.topictext {
+  text-align: center;
+  font-size:70px;
+  font-weight:500;
+  padding-bottom:2px;
+}
+
+.ANNOUNCEMENTS {
+  border-top-left-radius:6px;
+  border-bottom-left-radius: 6px;
+}
+
+.menu {
+border-top-right-radius: 6px;
+border-bottom-right-radius: 6px;
+}
+
+.section {
+  max-width: 1400px;
+  margin: 40px auto;
+  padding: 0 20px;
+  
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  border-radius: 6px;
+   box-shadow: 0px 0px 10px 5px hwb(0 0% 100% / 0.2);
+}
+
+.card {
+  padding: 20px 15px 10px 15px;
+  color: #fff;
+  min-height: 500px;
+}
+
+.card h3 {
+  margin-top:395px;
+  font-size: 28px;
+  text-align:center;
+  transition: font-size 0.15s;
+  cursor: pointer;
+  
+}
+
+h3:hover {
+  font-size: 30px;
+}
+
+.market { 
+background-image: linear-gradient(to top, rgb(19, 51, 98, 0.9), rgba(19, 51, 98, 0.1)) ; }
+.ANNOUNCEMENTS {
+background-image: linear-gradient(to top, rgb(138, 109, 59, 0.9), rgba(138, 109, 59, 0.1));}
+.utility { 
+background-image: linear-gradient(to top, rgba(126, 42, 39, 0.9), rgba(60, 59, 59, 0.1)); }
+.menu {
+background-image: linear-gradient(to top, rgb(67, 30, 81,0.9), rgba(67, 30, 81, 0.1));}
+.lost {
+background-image: linear-gradient(to top, rgb(37, 63, 37,0.9), rgba(37, 63, 37, 0.1));}
+
+
+.market1 { 
+background-image: url(market.png);
+background-size: cover;
+ }
+.announcements1{
+  background-image: url(announcements.png);
+background-size: cover;
+border-top-left-radius:6px;
+  border-bottom-left-radius: 6px;
+
+ }
+.utility1 { 
+background-image: url(utility.jpg);
+background-size: cover;
+ }
+.menu1 {
+background-image: url(mess.jpg);
+background-size: cover;
+border-top-right-radius: 6px;
+border-bottom-right-radius: 6px;
+ }
+.lost1 {
+background-image: url(lost.jpg);
+background-size: cover;
+}
+.noticelink {
+  text-decoration: none;
+}
+.selllink {
+  text-decoration: none;  
+}
+.profile{
+  position: absolute;
+  z-index: 1;
+  height: 50px;
+  width: 50px;
+  left:20px;
+  top:650px;
+  border-radius: 25px;
+  border-color:  #002855 ;
+  background-color: #002855;
+  border-style: solid;
+  background-image: url(images.png);
+  background-size: cover;
+  border-width: 2px;
+  transition: all 0.15s;
+   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+
+}
+.profile:hover {
+  height: 60px;
+  width: 60px;
+  border-radius: 30px;
+  left: 15px;
+  top: 645px;
+}
+.chat {
+   position: absolute;
+  z-index: 1;
+  height: 50px;
+  width: 50px;
+  left:1466px;
+  top:650px;
+  border-radius: 25px;
+  border-color:  #002855 ;
+  background-color: #002855;
+  border-style: solid;
+  background-image: url(chat.png);
+  background-size: cover;
+  border-width: 1px;
+  transition: all 0.15s;
+   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+}
+.chat:hover {
+   height: 60px;
+  width: 60px;
+  border-radius: 30px;
+  left: 1461px;
+  top: 645px;
+}
+</style>
+</head>
+
+<body>
+
+
+
+<header>
+  <div class="header-inner">
+    
+      <IMG CLASS="logopic1"   SRC="PIC33.PNG">
+       <div class="topictext">
+    Campus Utility Hub
+  </div>
+    <div class="logopic">
+      <img class="logopic" src="pic2.png">
+    </div>
+    <div class="logo">IIT(ISM) DHANBAD</div>
+  
+ </div>
+</header>
+
+<section class="section">
+
+  <div class="cards">
+    <div class="announcements1">
+      <a class="noticelink" href="announcemnet\notice.html">
+     <div class="card ANNOUNCEMENTS">
+      <h3>ANNOUNCEMENTS & NOTICES</h3>
+     </div>
+      </a>
+    </div>
+    <div class=" market1">
+    <a class="selllink" href="..\buy-sell\buysell.html">
+     <div class="card market">
+      <h3>STUDENT MARKETPLACE</h3>
+    </div>
+    </a>
+  </div>
+    <div class=" lost1">
+      <a class="selllink" href="..\lostfound\lostfound.html">
+    <div class="card lost">
+      <h3>LOST & FOUND SECTION</h3>
+    </div>
+      </a>
+  </div>
+<div class=" utility1">
+  <a class="noticelink" href="utility/main.html">
+     <div class="card utility">
+      <h3>UTILITY STATUS TRACKER</h3>
+    </div>
+  </a>
+</div>
+<div class="menu1">
+  <a class="noticelink" href="../mess-menu/mess-menu.html">
+      <div class="card menu">
+      <h3>DAILY MESS MENUS</h3>
+    </div>
+  </a>
+    </div>
+  </div>
+</section>
+<button class="profile">
+
+
+</button>
+<button onclick="window.location.href='https://web.whatsapp.com/', '_blank'" class="chat">
+  
+
+</button>
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism",
+  storageBucket: "campus-utility-hub-iitism.firebasestorage.app",
+  messagingSenderId: "281851939722",
+  appId: "1:281851939722:web:62f0da477d4c2a917f5673"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const profileBtn = document.querySelector(".profile");
+
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "../login.html";
+    return;
+  }
+
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (snap.exists()) {
+      const data = snap.data();
+
+     
+      if (data.photoURL) {
+        profileBtn.style.backgroundImage = `url(${data.photoURL})`;
+      }
+      
+    }
+  } catch (err) {
+    console.error("Failed to load profile image", err);
+  }
+});
+
+
+profileBtn.addEventListener("click", () => {
+  window.location.href = "dashboard.html";
+});
+</script>
+
+
+</body>
+</html>

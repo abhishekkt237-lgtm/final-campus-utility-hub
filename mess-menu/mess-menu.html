@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mess Menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+<style>
+  * {
+     box-sizing: border-box; 
+     font-family: Roboto; 
+    }
+  body {
+     background: #f3f3f3;
+      padding: 20px; 
+      user-select: none; 
+    }
+
+  h1 { 
+    text-align: center; 
+    margin-bottom: 15px;
+   }
+
+  select {
+     width: 100%; 
+     padding: 10px;
+      margin-bottom: 20px;
+       font-size: 16px; 
+       background-color: rgb(198, 197, 195);
+       }
+
+  .day-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .day {
+    background: rgb(193, 194, 187);
+    padding:0 15PX 15PX 15px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+
+  .meal {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #d7d7d7;
+    border: 1px solid #ddd;
+    
+  }
+
+  .dish {
+    padding: 8px 0;
+  }
+
+  .dish:last-child {
+     border-bottom: none; 
+    }
+
+  .stars span {
+    font-size: 20px;
+    cursor: pointer;
+    color: #ffffff;
+  }
+
+  .stars span.active { 
+    color: gold; 
+  }
+
+  textarea {
+    width: 100%;
+    margin-top: 8px;
+    padding: 6px;
+    resize: none;
+  }
+
+  button {
+    margin-top: 5px;
+    padding: 6px 12px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  h2 {
+    margin: 10px 0;
+  }
+  h3 {
+    margin: 10px 0;
+  }
+  h4 {
+    margin: 0px 0;
+  }
+  .home {
+  z-index: 10;
+  position: absolute; 
+  top: 45px;
+  font-size: 20px;
+  cursor: pointer;
+  color: rgb(0, 0, 0);
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+  <a class="home" onclick="window.location.href='../main-page/front.html'">&lt; Home</a>
+<h1>Mess Menu</h1>
+
+<select id="hostelSelect">
+  <option value="">-- Select Hostel --</option>
+  <option value="HostelA">Amber</option>
+      <option value="HostelB">Diamond</option>
+      <option value="HostelC">Jasper </option>
+      <option value="HostelD">Sapphire</option>
+      <option value="HostelE">Topaz</option>
+      <option value="HostelF">Aquamarine</option>
+      <option value="HostelG">Emerald</option>
+      <option value="HostelH">Opal</option>
+      <option value="HostelI">Rosaline and Ruby</option>
+      <option value="HostelJ">International Hostel</option>
+    </select>
+
+<div id="menu"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc,
+  updateDoc, increment, addDoc, collection
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+
+onAuthStateChanged(auth, user => {
+  if (!user) alert("Please login");
+  else currentUser = user;
+});
+
+const hostelSelect = document.getElementById("hostelSelect");
+const menuDiv = document.getElementById("menu");
+
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const MEALS = ["breakfast","lunch","snacks","dinner"];
+
+hostelSelect.addEventListener("change", loadMenu);
+
+
+
+async function loadMenu() {
+  const hostel = hostelSelect.value;
+  if (!hostel) return menuDiv.innerHTML = "";
+
+  menuDiv.innerHTML = "";
+  const snap = await getDoc(doc(db, "weeklyMessMenus", hostel));
+  if (!snap.exists()) return menuDiv.innerHTML = "<p>No menu uploaded yet.</p>";
+
+  const data = snap.data();
+  const grid = document.createElement("div");
+  grid.className = "day-grid";
+
+  DAYS.forEach(day => {
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "day";
+    dayDiv.innerHTML = `<h2>${day}</h2>`;
+
+    MEALS.forEach(meal => {
+      const mealDiv = document.createElement("div");
+      mealDiv.className = "meal";
+      mealDiv.innerHTML = `<h3>${meal.toUpperCase()}</h3>`;
+
+      (data?.[day]?.[meal] || []).forEach(dish => {
+        mealDiv.appendChild(createDish(dish));
+      });
+
+      dayDiv.appendChild(mealDiv);
+    });
+
+    grid.appendChild(dayDiv);
+  });
+
+  menuDiv.appendChild(grid);
+}
+
+
+function createDish(dish) {
+  const div = document.createElement("div");
+  div.className = "dish";
+  div.innerHTML = `
+    <h4>${dish.name}</h4>
+    <div class="stars">${[1,2,3,4,5].map(n => `<span data-val="${n}">★</span>`).join("")}</div>
+    <textarea placeholder="Add comment (optional)"></textarea>
+    <button>Submit</button>
+  `;
+
+  const stars = div.querySelectorAll(".stars span");
+  const textarea = div.querySelector("textarea");
+  const btn = div.querySelector("button");
+
+  stars.forEach(star => {
+    star.onclick = () => {
+      stars.forEach(s => s.classList.remove("active"));
+      for (let i = 0; i < star.dataset.val; i++) stars[i].classList.add("active");
+    };
+  });
+
+  btn.onclick = async () => {
+    if (!currentUser) return;
+
+    const rating = [...stars].filter(s => s.classList.contains("active")).length;
+    if (!rating) return alert("Select rating");
+
+    const ratingKey = `${currentUser.uid}_${dish.dishId}`;
+    const userRatingRef = doc(db, "userDishRatings", ratingKey);
+
+    if ((await getDoc(userRatingRef)).exists())
+      return alert("You already rated this dish");
+
+      
+    await setDoc(userRatingRef, {
+      userId: currentUser.uid,
+      dishId: dish.dishId,
+      rating
+    });
+
+    const dishRatingRef = doc(db, "dishRatings", dish.dishId);
+
+  
+    
+    try {
+      await updateDoc(dishRatingRef, {
+        [`ratings.${rating}`]: increment(1),
+        totalRatings: increment(1)
+      });
+    } catch {
+      await setDoc(dishRatingRef, {
+        ratings: {
+          1: rating === 1 ? 1 : 0,
+          2: rating === 2 ? 1 : 0,
+          3: rating === 3 ? 1 : 0,
+          4: rating === 4 ? 1 : 0,
+          5: rating === 5 ? 1 : 0
+        },
+        totalRatings: 1
+      });
+    }
+
+    if (textarea.value) {
+      await addDoc(collection(db, "dishComments"), {
+        dishId: dish.dishId,
+        userId: currentUser.uid,
+        comment: textarea.value,
+        createdAt: new Date()
+      });
+    }
+
+    textarea.value = "";
+    alert("✅ Submitted successfully");
+  };
+
+  return div;
+}
+</script>
+
+</body>
+</html>

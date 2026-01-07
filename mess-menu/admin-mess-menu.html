@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin – Weekly Mess Menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; font-family: Roboto; }
+
+  body {
+    background: #f2f2f2;
+    padding: 20px;
+    user-select: none;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+
+  .day {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+
+  .meal {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #fafafa;
+    border: 1px solid #ddd;
+  }
+
+  .dish {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .dish input {
+    flex: 1;
+    padding: 8px;
+  }
+
+  .dish button {
+    background: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  .addBtn {
+    margin-top: 8px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .saveBtn {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .home {
+  z-index: 100;
+  position: absolute;
+  top: 40px;
+  left: 30px;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  font-size: 25px;
+  font-weight: bold;}
+  .dashboard {
+  z-index: 100;
+  position: absolute;
+  top: 40px;
+  left: 1365px;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  font-size: 25px;
+  font-weight: bold;}
+</style>
+</head>
+
+<body>
+    <div onclick="window.location.href='../main-page/frontadmin.html'" class="home">&lt; Home</div>
+  <div onclick="window.location.href='admindashboard.html'" class="dashboard">Dashboard &gt;</div>
+
+
+<h1>Weekly Mess Menu</h1>
+
+<select id="hostel">
+  <option value="">-- Select Hostel --</option>
+  <option value="HostelA">Amber</option>
+      <option value="HostelB">Diamond</option>
+      <option value="HostelC">Jasper </option>
+      <option value="HostelD">Sapphire</option>
+      <option value="HostelE">Topaz</option>
+      <option value="HostelF">Aquamarine</option>
+      <option value="HostelG">Emerald</option>
+      <option value="HostelH">Opal</option>
+      <option value="HostelI">Rosaline and Ruby</option>
+      <option value="HostelJ">International Hostel</option>
+</select>
+
+<div id="editor"></div>
+
+<button class="saveBtn" id="saveBtn">Save Weekly Menu</button>
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    alert("Admin login required");
+    location.href = "login.html";
+  }
+});
+
+const editor = document.getElementById("editor");
+const hostelSelect = document.getElementById("hostel");
+
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const MEALS = ["breakfast","lunch","snacks","dinner"];
+
+hostelSelect.onchange = loadMenu;
+
+async function loadMenu() {
+  const hostel = hostelSelect.value;
+  if (!hostel) return;
+
+  editor.innerHTML = "";
+
+  const snap = await getDoc(doc(db, "weeklyMessMenus", hostel));
+  const data = snap.exists() ? snap.data() : {};
+
+  DAYS.forEach(day => {
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "day";
+    dayDiv.dataset.day = day;
+
+    dayDiv.innerHTML = `<h2>${day}</h2>`;
+
+    MEALS.forEach(meal => {
+      const dishes = data?.[day]?.[meal] || [];
+      dayDiv.appendChild(createMealEditor(meal, dishes));
+    });
+
+    editor.appendChild(dayDiv);
+  });
+}
+
+function createMealEditor(meal, dishes) {
+  const div = document.createElement("div");
+  div.className = "meal";
+  div.dataset.meal = meal;
+
+  div.innerHTML = `<h3>${meal.toUpperCase()}</h3>`;
+
+  dishes.forEach(d => addDishRow(div, d.name));
+
+  const btn = document.createElement("button");
+  btn.className = "addBtn";
+  btn.innerText = "+ Add Dish";
+  btn.onclick = () => addDishRow(div);
+
+  div.appendChild(btn);
+  return div;
+}
+
+function addDishRow(mealDiv, name = "") {
+  const row = document.createElement("div");
+  row.className = "dish";
+
+  row.innerHTML = `
+    <input placeholder="Dish name" value="${name}">
+    <button>✖</button>
+  `;
+
+  row.querySelector("button").onclick = () => row.remove();
+  mealDiv.insertBefore(row, mealDiv.lastChild);
+}
+
+async function saveMenu() {
+  const hostel = hostelSelect.value;
+  if (!hostel) return alert("Please select hostel");
+
+  const weeklyMenu = {};
+
+  document.querySelectorAll(".day").forEach(dayDiv => {
+    const day = dayDiv.dataset.day;
+    weeklyMenu[day] = {};
+
+    dayDiv.querySelectorAll(".meal").forEach(mealDiv => {
+      const meal = mealDiv.dataset.meal;
+      weeklyMenu[day][meal] = [];
+
+      mealDiv.querySelectorAll(".dish input").forEach(input => {
+        if (input.value.trim()) {
+          weeklyMenu[day][meal].push({
+            dishId: crypto.randomUUID(),
+            name: input.value.trim()
+          });
+        }
+      });
+    });
+  });
+
+  await setDoc(doc(db, "weeklyMessMenus", hostel), weeklyMenu);
+
+  alert("✅ Weekly mess menu saved successfully!");
+}
+document.getElementById("saveBtn").addEventListener("click", saveMenu);
+
+</script>
+
+</body>
+</html>

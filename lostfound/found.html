@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Report Found Item</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; font-family: Roboto; }
+    body {
+      background: linear-gradient(135deg,#efe6c2,#fbf8f6,#efe6c2);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      flex-direction: column;
+      user-select: none;
+    }
+    .box {
+      background:#e9f4d1;
+      padding:20px 30px 30px 30px;
+      width:700px;
+      border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,.3);
+    }
+    h2 { text-align:center; 
+      margin:10px 0 20px 0;
+    font-size: 30px; }
+    label { font-weight:600; margin-top:10px; display:block; }
+    input, textarea {
+      width:100%;
+      padding:10px;
+      margin-top:5px;
+      border-radius:6px;
+      border:1px solid #aaa;
+    }
+    textarea { resize:none; height:90px; }
+    button {
+      width:100%;
+      padding:12px;
+      margin-top:20px;
+      background:#543002;
+      color:white;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+    }
+    .my-btn {
+      background:#333;
+      margin-bottom:15px;
+    }
+  </style>
+</head>
+
+<body>
+
+
+<div class="box">
+  <h2>Report Found Item</h2>
+
+  <form id="form">
+    <label>Item Name</label>
+    <input id="itemName" required>
+
+    <label>Place Found</label>
+    <input id="placeFound" required>
+
+    <label>Item Image</label>
+    <input id="image" type="file" accept="image/*" required>
+
+    <label>Description</label>
+    <textarea id="description" required></textarea>
+
+    <button>Submit Found Item</button>
+
+<button id="myFoundBtn" class="my-btn">
+  My Reported Items
+</button>
+  </form>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+    authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+    projectId: "campus-utility-hub-iitism"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  const form = document.getElementById("form");
+  const itemName = document.getElementById("itemName");
+  const placeFound = document.getElementById("placeFound");
+  const imageInput = document.getElementById("image");
+  const description = document.getElementById("description");
+
+  let currentUser = null;
+
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) currentUser = user;
+    else alert("Please login first");
+  });
+
+ 
+  async function uploadImage(file) {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", "noticeboard_upload");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dfclsa1oc/auto/upload",
+      { method: "POST", body: fd }
+    );
+
+    const data = await res.json();
+    return data.secure_url;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!currentUser) return alert("Auth not ready");
+    if (!imageInput.files[0]) return alert("Select image");
+
+    try {
+      const imageURL = await uploadImage(imageInput.files[0]);
+
+      await addDoc(collection(db, "foundItems"), {
+        itemName: itemName.value,
+        placeFound: placeFound.value,
+        description: description.value,
+        imageURL,
+        reporterId: currentUser.uid,
+        createdAt: serverTimestamp()
+      });
+
+      alert("✅ Found item reported successfully");
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Upload failed");
+    }
+  });
+
+
+  document.getElementById("myFoundBtn").onclick = () => {
+    window.location.href = "myfound.html";
+  };
+</script>
+
+</body>
+</html>

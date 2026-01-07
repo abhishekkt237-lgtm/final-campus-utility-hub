@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utility Status Tracker</title>
+<style>
+* { 
+  padding: 0; 
+  margin: 0;
+   box-sizing:
+    border-box;
+   }
+
+body {
+  font-family: roboto, arial;
+  background: linear-gradient(90deg, rgba(35,67,55,0.5), rgba(191,179,179,0.75), rgba(35,67,55,0.5));
+  padding: 20px;user-select: none;
+}
+
+h1 { 
+  text-align:center;
+   color:white;
+    margin-bottom:30px;
+    font-size: 50px;
+   }
+
+.dropdowns { 
+  display:flex; 
+  gap:20px;
+   margin-bottom:30px;
+    justify-content:center;
+   }
+select {
+   padding:12px;
+   font-size:18px;
+    border-radius:6px;
+     border:1px solid #aaa; }
+
+.block-info { 
+  font-size:28px; 
+  color:white; 
+  text-align:center; 
+  margin-bottom:20px;
+ }
+
+.utility-card {
+  width:90%;
+  max-width:900px;
+  min-height:180px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:15px;
+  color:white;
+  font-size:26px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  position:relative;
+  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+
+.utility-card a { 
+  color:#fff;
+   text-decoration:underline;
+    font-size:20px;
+   }
+
+.wifi {
+   background-color: rgba(224,138,222,0.7); 
+  }
+.electricity {
+   background-color: rgba(209,150,31,0.7);
+   }
+.water { 
+  background-color: rgba(5,78,137,0.7);
+ }
+.laundry { 
+  background-color: rgba(98,172,228,0.7); 
+}
+
+.utility-title {
+   font-size:32px; font-weight:bold; margin-bottom:10px; 
+  }
+.utility-info {
+  font-size:22px; 
+}
+.home {
+  z-index: 10;
+  position: absolute; 
+  top: 30px;
+  font-size: 25px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<h1>Utility Status</h1>
+
+<div class="dropdowns">
+   <div>
+    <label for="hostelSelect" style="color:white; font-size:20px;">Select Hostel:</label>
+    <select id="hostelSelect">
+      <option value="">-- Select Hostel --</option>
+      <option value="HostelA">Amber</option>
+      <option value="HostelB">Diamond</option>
+      <option value="HostelC">Jasper </option>
+      <option value="HostelD">Sapphire</option>
+      <option value="HostelE">Topaz</option>
+      <option value="HostelF">Aquamarine</option>
+      <option value="HostelG">Emerald</option>
+      <option value="HostelH">Opal</option>
+      <option value="HostelI">Rosaline and Ruby</option>
+      <option value="HostelJ">International Hostel</option>
+    </select>
+  </div>
+  <div>
+    <label for="blockSelect" style="color:white; font-size:20px;">Select Block:</label>
+    <select id="blockSelect">
+      <option value="">-- Select Block --</option>
+      <option value="Block1">Block A</option>
+      <option value="Block2">Block B</option>
+       <option value="Block3">Block C</option>
+      <option value="Block4">Block D</option>
+       <option value="Block5">Block E</option>
+      <option value="Block5">Block F</option>
+    </select>
+  </div>
+</div>
+
+<div class="block-info" id="blockInfo"></div>
+
+<div class="utility-card wifi">
+  <div class="utility-title">WIFI</div>
+  <div class="utility-info" id="wifiInfo">Select block & hostel to see info</div>
+</div>
+
+<div class="utility-card electricity">
+  <div class="utility-title">Electricity</div>
+  <div class="utility-info" id="electricityInfo">Select block & hostel to see info</div>
+</div>
+
+<div class="utility-card water">
+  <div class="utility-title">Water</div>
+  <div class="utility-info" id="waterInfo">Select block & hostel to see info</div>
+</div>
+
+<div class="utility-card laundry">
+  <div class="utility-title">Laundry</div>
+  <div class="utility-info" id="laundryInfo">Select block & hostel to see info</div>
+</div>
+<a class="home" onclick="window.location.href='../front.html'">&lt; Home</a>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism",
+  storageBucket: "campus-utility-hub-iitism.appspot.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const hostelSelect = document.getElementById("hostelSelect");
+const blockSelect = document.getElementById("blockSelect");
+const blockInfo = document.getElementById("blockInfo");
+
+const infoIds = {
+  wifi: "wifiInfo",
+  electricity: "electricityInfo",
+  water: "waterInfo",
+  laundry: "laundryInfo"
+};
+
+async function updateUtilities() {
+  const hostel = hostelSelect.value;
+  const selectedBlock = blockSelect.value;
+
+  if(!hostel || !selectedBlock) {
+    blockInfo.innerText = "";
+    Object.values(infoIds).forEach(id => document.getElementById(id).innerHTML = "Select block & hostel to see info");
+    return;
+  }
+
+
+  const docRef = doc(db, "utilities", hostel + "_" + selectedBlock);
+  const docSnap = await getDoc(docRef);
+
+  if(docSnap.exists()) {
+    const data = docSnap.data();
+    blockInfo.innerText = `Block: ${selectedBlock}, Hostel: ${hostel}`;
+
+   ["wifi","electricity","water","laundry"].forEach(u => {
+  const infoDiv = document.getElementById(infoIds[u]);
+  if(data[u]){
+    let html = data[u].isRunning ? "🟢 Running" : "🔴 Not Running";
+
+    if(data[u].message){
+      html += `<br>${data[u].message}`;
+    }
+
+
+    if(data[u].pdfURL){
+      html += `<br><a href="${data[u].pdfURL}" target="_blank" download>Download PDF</a>`;
+    }
+
+    infoDiv.innerHTML = html;
+  } else {
+    infoDiv.innerHTML = "No information available";
+  }
+});
+
+
+  } else {
+    blockInfo.innerText = `No data` ;
+    Object.values(infoIds).forEach(id => document.getElementById(id).innerHTML = "No information available");
+  }
+}
+
+hostelSelect.addEventListener("change", updateUtilities);
+blockSelect.addEventListener("change", updateUtilities);
+
+</script>
+
+</body>
+</html>

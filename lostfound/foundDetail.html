@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Found Item Details</title>
+
+<style>
+  body { font-family: Roboto, sans-serif; background:#f5f5f5; padding:30px;user-select: none; }
+  .box {
+    background:white;
+    padding:20px;
+    max-width:1000px;
+    margin:auto;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    display: flex;
+  }
+  img { width:500px; 
+    border-radius:10px;
+  margin: 60px 20px 0 0; }
+  h2 { margin-top:15px; }
+  .item-info p, .reporter p { margin:5px 0; }
+  .reporter {
+    margin-top:20px;
+    background:#eef3e0;
+    padding:15px;
+    border-radius:8px;
+    max-width: 440px;
+  }
+  .chat-btn {
+    padding:10px 15px;
+    background:#543002;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    margin-top:10px;
+    margin-right: 15px;
+  }
+ .item-info {
+    background-color: #ad9c87;
+    padding: 20px;
+    border-radius: 6px;
+     box-shadow:0 5px 15px rgba(0,0,0,0.2);
+     overflow: hidden;
+     max-width: 440px;
+ }
+</style>
+</head>
+
+<body>
+
+<div class="box"> 
+  <div class="img">
+  <img id="itemImage" src="" alt="Found Item Image">
+  </div>
+  <div class="info">
+  <h2 id="itemName"></h2>
+
+  <div class="item-info">
+    <p><b>Place Found:</b> <span id="placeFound"></span></p>
+    <p><b>Description:</b></p>
+    <p id="itemDescription"></p>
+  </div>
+
+  <div class="reporter">
+    <h3>Reporter Info</h3>
+    <p><b>Name:</b> <span id="reporterName"></span></p>
+    <p><b>Phone:</b> <span id="reporterPhone"></span></p>
+    <p><b>Branch:</b> <span id="reporterBranch"></span></p>
+    <p><b>Hostel:</b> <span id="reporterHostel"></span></p>
+    <p><b>Room No.:</b> <span id="reporterRoom"></span></p>
+
+    <button class="chat-btn" id="chatBtn">Contact Reporter</button><button class="chat-btn" onclick="window.location.href='founditems.html'">Go back</button>
+  </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+  authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+  projectId: "campus-utility-hub-iitism"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+const params = new URLSearchParams(window.location.search);
+const foundId = params.get("foundId");
+
+if (!foundId) {
+  alert("Found item not specified");
+  throw new Error("No foundId");
+}
+
+
+const foundSnap = await getDoc(doc(db, "foundItems", foundId));
+if (!foundSnap.exists()) {
+  alert("Found item not found");
+  throw new Error("Found item not found");
+}
+
+const item = foundSnap.data();
+
+
+document.getElementById("itemImage").src = item.imageURL || "";
+document.getElementById("itemName").innerText = item.itemName || "";
+document.getElementById("placeFound").innerText = item.placeFound || "";
+document.getElementById("itemDescription").innerText = item.description || "";
+
+
+const reporterSnap = await getDoc(doc(db, "users", item.reporterId));
+if (reporterSnap.exists()) {
+  const reporter = reporterSnap.data();
+
+  document.getElementById("reporterName").innerText = reporter.fullName || "";
+  document.getElementById("reporterPhone").innerText = reporter.phone || "";
+  document.getElementById("reporterBranch").innerText = reporter.branch || "";
+  document.getElementById("reporterHostel").innerText = reporter.hostel || "";
+  document.getElementById("reporterRoom").innerText = reporter.room || "";
+
+  document.getElementById("chatBtn").onclick = () => {
+    if (reporter.phone) {
+      window.open(`https://wa.me/${reporter.phone}`, "_blank");
+    } else {
+      alert("Phone number not available");
+    }
+  };
+} else {
+  alert("Reporter info not found");
+}
+</script>
+
+</body>
+</html>

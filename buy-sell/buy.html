@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Marketplace - Buy Products</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: Roboto,arial;
+    margin:0;
+    padding:0;
+    background: #f3f3f3;
+    user-select: none;
+  }
+
+  header {
+    background: #787777;
+    color: white;
+    padding: 5px;
+    text-align: center;
+  }
+
+  #productGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .productTile {
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .productTile:hover {
+    transform: scale(1.03);
+  }
+
+  .productTile img {
+    width: 100%;
+    border-radius: 8px;
+    height: 150px;
+    object-fit: cover;
+  }
+
+  .productTile h3 {
+    margin: 10px 0 5px 0;
+    font-size: 18px;
+  }
+
+  .productTile p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #333;
+  }
+
+  /* Modal */
+  #productDetailModal {
+    display: none;
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #productDetailContent {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 90%;
+    overflow-y: auto;
+  }
+
+  #productDetailContent img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  #productDetailContent h2 {
+    margin-top: 15px;
+  }
+
+  #productDetailContent p {
+    margin: 5px 0;
+  }
+
+  #productDetailContent button {
+    margin-top: 15px;
+    padding: 10px;
+    background: #3a3a3a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Buy Products</h1>
+</header>
+
+<div id="productGrid">
+</div>
+
+<div id="productDetailModal">
+  <div id="productDetailContent">
+    <img id="detailImage" src="" alt="Product Image">
+    <h2 id="detailName"></h2>
+    <p><strong>Price:</strong> ₹<span id="detailPrice"></span></p>
+    <p><strong>Category:</strong> <span id="detailCategory"></span></p>
+    <p><strong>Quantity:</strong> <span id="detailQuantity"></span></p>
+    <p><strong>Description:</strong></p>
+    <p id="detailDescription"></p>
+    <hr>
+    <h3>Seller Info</h3>
+    <p><strong>Name:</strong> <span id="sellerName"></span></p>
+    <p><strong>Phone:</strong> <span id="sellerPhone"></span></p>
+    <p><strong>Branch:</strong> <span id="sellerBranch"></span></p>
+    <p><strong>Hostel:</strong> <span id="sellerHostel"></span></p>
+    <p><strong>Room No.:</strong> <span id="sellerRoom"></span></p>
+    <button id="chatButton">Chat with Seller</button>
+    <button onclick="closeModal()" style="background:#777;">Close</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVGVP0c6e9KMdp2RmqOeGGVxr8kFsXZ7M",
+    authDomain: "campus-utility-hub-iitism.firebaseapp.com",
+    projectId: "campus-utility-hub-iitism"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const productGrid = document.getElementById("productGrid");
+  const modal = document.getElementById("productDetailModal");
+
+
+ async function loadProducts() {
+  const snapshot = await getDocs(collection(db, "products"));
+  productGrid.innerHTML = "";
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const productTile = document.createElement("div");
+    productTile.className = "productTile";
+
+    productTile.innerHTML = `
+      <img src="${data.imageURL}" alt="Product">
+      <h3>${data.name}</h3>
+      <p>₹${data.price}</p>
+      <p>${data.category}</p>
+    `;
+
+
+    productTile.onclick = () => {
+      window.location.href = `productDetail.html?productId=${docSnap.id}`;
+    };
+
+
+      productGrid.appendChild(productTile);
+    });
+  }
+
+  async function showProductDetail(productId, productData) {
+    document.getElementById("detailImage").src = productData.imageURL;
+    document.getElementById("detailName").innerText = productData.name;
+    document.getElementById("detailPrice").innerText = productData.price;
+    document.getElementById("detailCategory").innerText = productData.category;
+    document.getElementById("detailQuantity").innerText = productData.quantity;
+    document.getElementById("detailDescription").innerText = productData.description;
+
+const sellerSnap = await getDoc(doc(db, "users", productData.sellerId));
+if (sellerSnap.exists()) {
+  const seller = sellerSnap.data();
+
+  document.getElementById("sellerName").innerText = seller.fullName || "N/A";
+  document.getElementById("sellerPhone").innerText = seller.phone || "N/A";
+  document.getElementById("sellerBranch").innerText = seller.branch || "N/A";
+  document.getElementById("sellerHostel").innerText = seller.hostel || "N/A";
+  document.getElementById("sellerRoom").innerText = seller.room || "N/A";
+
+  document.getElementById("chatButton").onclick = () => {
+    if (seller.phone) {
+      window.open(`https://wa.me/${seller.phone}`, "_blank");
+    } else {
+      alert("Phone number not available");
+    }
+  };
+}
+
+
+    modal.style.display = "flex";
+  }
+
+  function closeModal() {
+    modal.style.display = "none";
+  }
+
+  loadProducts();
+</script>
+
+</body>
+</html>
